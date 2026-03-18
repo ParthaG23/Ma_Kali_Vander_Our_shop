@@ -35,7 +35,7 @@ const Loader = ({ fullPage = false }) => {
               <path d="M16 10a4 4 0 01-8 0"/>
             </svg>
             <span className="font-display text-[19px] font-semibold text-sage-800 tracking-tight">
-              GroceryShop
+              Ma Kali Vandar
             </span>
           </motion.div>
         )}

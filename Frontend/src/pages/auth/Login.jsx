@@ -94,13 +94,13 @@ const Login = () => {
             <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center">
               <RiLeafLine className="text-white text-lg" />
             </div>
-            <span className="font-display text-xl font-bold text-white">GroceryShop</span>
+            <span className="font-display text-xl font-bold text-white">Ma Kali Vandar</span>
           </div>
           <h1 className="font-display text-4xl font-bold text-white leading-tight mb-4">
-            Your shop,<br />perfectly managed.
+            Everything you need for your shop,<br />in one place.
           </h1>
           <p className="text-sage-200 text-base leading-relaxed max-w-xs">
-            Track every baki, manage inventory, and keep your customers happy — all in one place.
+            Track every baki, manage inventory, and keep our customers happy — all in one place.
           </p>
         </div>
 
@@ -133,7 +133,7 @@ const Login = () => {
             <div className="w-8 h-8 bg-sage-700 rounded-lg flex items-center justify-center">
               <RiLeafLine className="text-white text-sm" />
             </div>
-            <span className="font-display text-lg font-bold text-stone-900">GroceryShop</span>
+            <span className="font-display text-lg font-bold text-stone-900">Ma Kali Vandar</span>
           </div>
 
           <h2 className="font-display text-2xl font-bold text-stone-900 mb-1">Sign in</h2>

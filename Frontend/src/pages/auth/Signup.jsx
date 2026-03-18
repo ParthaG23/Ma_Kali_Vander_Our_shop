@@ -66,7 +66,7 @@ const Signup = () => {
             <div className="w-9 h-9 bg-sage-700 rounded-xl flex items-center justify-center">
               <RiLeafLine className="text-white text-lg" />
             </div>
-            <span className="font-display text-xl font-bold text-stone-900">GroceryShop</span>
+            <span className="font-display text-xl font-bold text-stone-900">Ma Kali Vandar</span>
           </div>
           <h2 className="font-display text-2xl font-bold text-stone-900 mb-1">Create account</h2>
           <p className="text-sm text-stone-500">Join to manage your shop</p>
