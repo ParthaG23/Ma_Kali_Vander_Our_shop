@@ -2,15 +2,113 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GroceryShop — Khata & Inventory</title>
-    <meta name="description" content="Manage your grocery shop khata book and inventory" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#1e2d16" />
+    <meta name="description" content="Ma Kali Vandar — Khata Book & Inventory Management" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="MKV" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <title>Ma Kali Vandar — Khata & Inventory</title>
+
+    <!-- Favicon & PWA icons -->
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Playfair+Display:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+    <style>
+      #splash {
+        position: fixed; inset: 0;
+        background: linear-gradient(160deg, #2a3d1e 0%, #1e2d16 40%, #151f0f 100%);
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.55s ease, transform 0.55s ease;
+      }
+      #splash.hidden { opacity: 0; transform: scale(1.04); pointer-events: none; }
+      #splash::before {
+        content: ''; position: absolute; inset: 0; pointer-events: none;
+        background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
+        background-size: 26px 26px;
+      }
+      #splash-glow {
+        position: absolute; width: 380px; height: 380px;
+        border-radius: 50%; pointer-events: none;
+        background: radial-gradient(circle, rgba(180,130,60,0.2) 0%, transparent 68%);
+        animation: glowPulse 3.5s ease-in-out infinite;
+      }
+      #splash-bag {
+        width: 210px; height: 210px;
+        object-fit: contain;
+        filter: drop-shadow(0 20px 40px rgba(0,0,0,0.5));
+        animation: bagFloat 3s ease-in-out infinite;
+        position: relative; z-index: 1;
+      }
+      #splash-name {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: 26px; font-weight: 700;
+        color: #f5e6c8; letter-spacing: 0.02em;
+        text-align: center; margin-top: 14px;
+        text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+        position: relative; z-index: 1;
+      }
+      #splash-sub {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 11px; color: rgba(245,230,200,0.42);
+        letter-spacing: 0.22em; text-transform: uppercase;
+        margin-top: 6px; text-align: center;
+        position: relative; z-index: 1;
+      }
+      #splash-dots {
+        display: flex; gap: 6px; margin-top: 44px;
+        position: relative; z-index: 1;
+      }
+      #splash-dots span {
+        width: 6px; height: 6px; border-radius: 50%;
+        background: rgba(245,220,150,0.4);
+        animation: dot 1s ease-in-out infinite;
+      }
+      #splash-dots span:nth-child(2) { animation-delay: 0.15s; }
+      #splash-dots span:nth-child(3) { animation-delay: 0.30s; }
+      #splash-tagline {
+        position: absolute; bottom: 22px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 11px; color: rgba(245,230,200,0.2);
+        letter-spacing: 0.06em; z-index: 1;
+      }
+      @keyframes bagFloat  { 0%,100%{transform:translateY(0)}   50%{transform:translateY(-10px)} }
+      @keyframes glowPulse { 0%,100%{opacity:.6;transform:scale(1)} 50%{opacity:1;transform:scale(1.15)} }
+      @keyframes dot       { 0%,100%{opacity:.35;transform:scale(1)} 50%{opacity:1;transform:scale(1.4)} }
+    </style>
   </head>
   <body>
+    <!-- HTML splash — visible before React loads -->
+    <div id="splash">
+      <div id="splash-glow"></div>
+      <img id="splash-bag" src="/bag-logo.png" alt="Ma Kali Vandar" />
+      <div id="splash-name">Ma Kali Vandar</div>
+      <div id="splash-sub">Khata &amp; Inventory</div>
+      <div id="splash-dots"><span></span><span></span><span></span></div>
+      <div id="splash-tagline">Premium Groceries since 1980</div>
+    </div>
+
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(() => console.log('SW registered'))
+            .catch((e) => console.log('SW failed:', e));
+        });
+      }
+    </script>
   </body>
 </html>

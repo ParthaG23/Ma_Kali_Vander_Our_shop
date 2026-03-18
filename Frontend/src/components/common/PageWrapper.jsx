@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 const container = {
   hidden: {},
@@ -10,20 +10,11 @@ const item = {
   show:   { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } },
 };
 
-export const PageWrapper = ({ children, className = '' }) => {
-  const reduced = useReducedMotion();
-  return (
-    <motion.div
-      variants={container}
-      initial="hidden"
-      animate="show"
-      {...(reduced && { initial: false, animate: false })}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-};
+export const PageWrapper = ({ children }) => (
+  <motion.div variants={container} initial="hidden" animate="show">
+    {children}
+  </motion.div>
+);
 
 export const FadeItem = ({ children, className = '' }) => (
   <motion.div variants={item} className={className}>
