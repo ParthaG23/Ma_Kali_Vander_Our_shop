@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RiSearchLine, RiAddLine, RiEditLine, RiDeleteBinLine, RiShoppingBasket2Line } from 'react-icons/ri';
+import {
+  RiSearchLine, RiAddLine, RiEditLine, RiDeleteBinLine,
+  RiShoppingBasket2Line, RiShoppingCartLine,
+} from 'react-icons/ri';
 import { fetchProducts, deleteProduct } from '../../services/productService';
 import useAuth from '../../hooks/useAuth';
 import Loader from '../../components/common/Loader';
@@ -17,6 +20,81 @@ const stockLevel = (stock) => {
   return               { label: `${stock} in stock`, cls: 'badge-green' };
 };
 
+// ── Product card (like the screenshot) ────────────────────────────────────────
+const ProductCard = ({ p, isAdmin, onDelete, index }) => {
+  const stock = stockLevel(p.stock);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+      transition={{ delay: index * 0.04 }}
+      className="card overflow-hidden flex flex-col"
+    >
+      {/* Image */}
+      <div className="relative bg-stone-50 aspect-square overflow-hidden">
+        {p.image?.url ? (
+          <img src={p.image.url} alt={p.name}
+            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <span className="text-5xl font-bold text-stone-200">{p.name[0].toUpperCase()}</span>
+          </div>
+        )}
+
+        {/* Discount badge — show if stock is low */}
+        {p.stock < 5 && p.stock > 0 && (
+          <div className="absolute top-2.5 left-2.5 bg-sage-700 text-white text-[10px] font-bold px-2 py-1 rounded-lg">
+            LOW STOCK
+          </div>
+        )}
+
+        {/* Admin actions overlay */}
+        {isAdmin && (
+          <div className="absolute top-2.5 right-2.5 flex flex-col gap-1.5">
+            <Link to={`/admin/products/edit/${p._id}`}
+              className="w-7 h-7 rounded-full bg-white/90 shadow flex items-center justify-center text-stone-500 hover:text-sage-700 transition-colors">
+              <RiEditLine className="text-xs" />
+            </Link>
+            <button onClick={() => onDelete(p)}
+              className="w-7 h-7 rounded-full bg-white/90 shadow flex items-center justify-center text-stone-500 hover:text-red-600 transition-colors">
+              <RiDeleteBinLine className="text-xs" />
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Info */}
+      <div className="p-3 flex flex-col gap-2 flex-1">
+        <div>
+          <p className="text-[10px] text-stone-400 font-medium uppercase tracking-wider">{p.category}</p>
+          <p className="text-sm font-semibold text-stone-800 leading-snug mt-0.5 line-clamp-2">{p.name}</p>
+        </div>
+
+        <div className="flex items-center justify-between mt-auto">
+          <div>
+            <span className="text-base font-bold text-stone-900 font-mono">₹{p.price}</span>
+            <span className="text-xs text-stone-400 ml-1">/{p.unit}</span>
+          </div>
+          <span className={`${stock.cls} text-[10px]`}>{stock.label}</span>
+        </div>
+
+        <button
+          disabled={p.stock === 0}
+          className={`w-full py-2 rounded-xl text-sm font-semibold border transition-all
+            ${p.stock === 0
+              ? 'border-stone-200 text-stone-300 cursor-not-allowed'
+              : 'border-sage-600 text-sage-700 hover:bg-sage-700 hover:text-white active:scale-[0.98]'}`}
+        >
+          {p.stock === 0 ? 'Out of Stock' : 'Add'}
+        </button>
+      </div>
+    </motion.div>
+  );
+};
+
+// ── Main page ─────────────────────────────────────────────────────────────────
 const ProductList = () => {
   const { isAdmin }             = useAuth();
   const [products, setProducts] = useState([]);
@@ -53,141 +131,68 @@ const ProductList = () => {
             <h1 className="page-title">Products</h1>
           </div>
           {isAdmin && (
-            <Link to="/admin/products/add" className="btn-primary gap-1.5 text-xs sm:text-sm px-3 sm:px-5 py-2 sm:py-2.5">
-              <RiAddLine /> <span className="hidden sm:inline">Add Product</span><span className="sm:hidden">Add</span>
+            <Link to="/admin/products/add"
+              className="btn-primary gap-1.5 text-xs sm:text-sm px-3 sm:px-5 py-2 sm:py-2.5">
+              <RiAddLine />
+              <span className="hidden sm:inline">Add Product</span>
+              <span className="sm:hidden">Add</span>
             </Link>
           )}
         </div>
       </FadeItem>
 
       {/* Filters */}
-      <FadeItem className="space-y-3 mb-4">
+      <FadeItem className="space-y-3 mb-5">
         <div className="relative">
           <RiSearchLine className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 text-sm" />
           <input className="input-base pl-10 text-sm" placeholder="Search products…"
             value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
-        {/* Category pills — horizontally scrollable on mobile */}
         <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
           {categories.map((c) => (
             <button key={c} onClick={() => setCat(c)}
               className={`px-3 py-1.5 rounded-xl text-xs font-medium border whitespace-nowrap transition-all flex-shrink-0
-                ${cat === c ? 'bg-sage-700 text-white border-sage-700' : 'bg-white text-stone-600 border-stone-200 hover:border-stone-300'}`}>
+                ${cat === c
+                  ? 'bg-sage-700 text-white border-sage-700'
+                  : 'bg-white text-stone-600 border-stone-200 hover:border-stone-300'}`}>
               {c}
             </button>
           ))}
         </div>
       </FadeItem>
 
-      {/* Mobile card view + Desktop table */}
+      {/* Product grid */}
       <FadeItem>
         {filtered.length === 0 ? (
           <EmptyState icon={RiShoppingBasket2Line} title="No products found"
             description={search || cat !== 'All' ? 'Try changing filters' : 'Add your first product'}
-            action={isAdmin && <Link to="/admin/products/add" className="btn-primary text-sm">Add Product</Link>} />
+            action={isAdmin && (
+              <Link to="/admin/products/add" className="btn-primary text-sm">Add Product</Link>
+            )} />
         ) : (
-          <>
-            {/* Mobile: card list */}
-            <div className="sm:hidden space-y-2">
-              <AnimatePresence>
-                {filtered.map((p) => {
-                  const stock = stockLevel(p.stock);
-                  return (
-                    <motion.div key={p._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                      className="card p-4 flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-stone-100 text-stone-500 flex items-center justify-center text-sm font-semibold flex-shrink-0">
-                        {p.name[0].toUpperCase()}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-stone-800 text-sm truncate">{p.name}</div>
-                        <div className="flex items-center gap-2 mt-1 flex-wrap">
-                          <span className="badge-stone text-[10px]">{p.category}</span>
-                          <span className={`${stock.cls} text-[10px]`}>{stock.label}</span>
-                        </div>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <div className="font-bold text-sm font-mono text-stone-800">₹{p.price}</div>
-                        <div className="text-xs text-stone-400">/{p.unit}</div>
-                      </div>
-                      {isAdmin && (
-                        <div className="flex flex-col gap-1 flex-shrink-0">
-                          <Link to={`/admin/products/edit/${p._id}`}
-                            className="p-1.5 rounded-lg text-stone-400 hover:text-sage-700 hover:bg-sage-50 transition-colors">
-                            <RiEditLine className="text-sm" />
-                          </Link>
-                          <button onClick={() => setConfirm({ open: true, id: p._id, name: p.name })}
-                            className="p-1.5 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 transition-colors">
-                            <RiDeleteBinLine className="text-sm" />
-                          </button>
-                        </div>
-                      )}
-                    </motion.div>
-                  );
-                })}
-              </AnimatePresence>
-            </div>
-
-            {/* Desktop: table */}
-            <div className="hidden sm:block card overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-stone-100 bg-stone-50/50">
-                      <th className="table-th">Product</th>
-                      <th className="table-th">Category</th>
-                      <th className="table-th">Price</th>
-                      <th className="table-th">Stock</th>
-                      {isAdmin && <th className="table-th text-right">Actions</th>}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-stone-50">
-                    {filtered.map((p, i) => {
-                      const stock = stockLevel(p.stock);
-                      return (
-                        <motion.tr key={p._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
-                          className="hover:bg-stone-50/80 transition-colors group">
-                          <td className="table-td">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-xl bg-stone-100 text-stone-500 flex items-center justify-center text-sm font-semibold flex-shrink-0">
-                                {p.name[0].toUpperCase()}
-                              </div>
-                              <span className="font-medium text-stone-800">{p.name}</span>
-                            </div>
-                          </td>
-                          <td className="table-td"><span className="badge-stone">{p.category}</span></td>
-                          <td className="table-td font-mono font-medium">₹{p.price}<span className="text-stone-400 font-sans text-xs">/{p.unit}</span></td>
-                          <td className="table-td"><span className={stock.cls}>{stock.label}</span></td>
-                          {isAdmin && (
-                            <td className="table-td">
-                              <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Link to={`/admin/products/edit/${p._id}`}
-                                  className="p-2 rounded-lg text-stone-400 hover:text-sage-700 hover:bg-sage-50 transition-colors">
-                                  <RiEditLine className="text-sm" />
-                                </Link>
-                                <button onClick={() => setConfirm({ open: true, id: p._id, name: p.name })}
-                                  className="p-2 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 transition-colors">
-                                  <RiDeleteBinLine className="text-sm" />
-                                </button>
-                              </div>
-                            </td>
-                          )}
-                        </motion.tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-              <div className="px-5 py-3 border-t border-stone-100 text-xs text-stone-400">
-                {filtered.length} of {products.length} products
-              </div>
-            </div>
-          </>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            <AnimatePresence>
+              {filtered.map((p, i) => (
+                <ProductCard
+                  key={p._id}
+                  p={p}
+                  index={i}
+                  isAdmin={isAdmin}
+                  onDelete={(p) => setConfirm({ open: true, id: p._id, name: p.name })}
+                />
+              ))}
+            </AnimatePresence>
+          </div>
         )}
       </FadeItem>
 
-      <ConfirmModal open={confirm.open} title={`Remove "${confirm.name}"?`}
+      <ConfirmModal
+        open={confirm.open}
+        title={`Remove "${confirm.name}"?`}
         message="This product will be removed from your catalog."
-        onConfirm={handleDelete} onCancel={() => setConfirm({ open: false })} />
+        onConfirm={handleDelete}
+        onCancel={() => setConfirm({ open: false })}
+      />
     </PageWrapper>
   );
 };

@@ -8,6 +8,10 @@ const productSchema = new mongoose.Schema(
     stock:    { type: Number, default: 0, min: 0 },
     unit:     { type: String, default: 'kg', trim: true, maxlength: 20 },
     isActive: { type: Boolean, default: true, index: true },
+    image: {
+      url:      { type: String, default: '' },
+      publicId: { type: String, default: '' },
+    },
   },
   {
     timestamps: true,

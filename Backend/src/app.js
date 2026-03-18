@@ -13,11 +13,11 @@ const authRoutes    = require('./routes/authRoutes');
 const khataRoutes   = require('./routes/khataRoutes');
 const userRoutes    = require('./routes/userRoutes');
 const productRoutes = require('./routes/productRoutes');
+const uploadRoutes = require('./routes/uploadRoute');
 
 const app = express();
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
-// THIS is the #1 cause of "Network Error" — must be first, before any route
 const allowedOrigins = (process.env.CLIENT_ORIGINS || 'http://localhost:5173')
   .split(',')
   .map((o) => o.trim());
@@ -25,7 +25,6 @@ const allowedOrigins = (process.env.CLIENT_ORIGINS || 'http://localhost:5173')
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (mobile apps, curl, Postman)
       if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin)) return callback(null, true);
       logger.warn(`CORS blocked origin: ${origin}`);
@@ -37,7 +36,6 @@ app.use(
   })
 );
 
-// Handle pre-flight OPTIONS requests for all routes
 app.options('*', cors());
 
 // ── Security ─────────────────────────────────────────────────────────────────
@@ -45,20 +43,17 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
 
-// Sanitize MongoDB query injection ($set, $where, etc.)
 app.use(mongoSanitize());
 
 // ── Rate limiting ─────────────────────────────────────────────────────────────
-// Strict limit on auth routes (prevent brute force)
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,  // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 20,
   message: { success: false, message: 'Too many requests from this IP, please try again after 15 minutes' },
   standardHeaders: true,
   legacyHeaders: false,
 });
 
-// General API limiter
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 300,
@@ -67,8 +62,18 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Higher limit for uploads — image uploads are large and slow
+const uploadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 50,
+  message: { success: false, message: 'Too many upload requests, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // ── Request parsing ───────────────────────────────────────────────────────────
-app.use(express.json({ limit: '10kb' }));        // body size limit
+// Increase limit for multipart/form-data (image uploads go through multer, not json parser)
+app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // ── Compression ───────────────────────────────────────────────────────────────
@@ -84,7 +89,7 @@ if (process.env.NODE_ENV !== 'test') {
   );
 }
 
-// ── Health check (no auth, no rate limit) ────────────────────────────────────
+// ── Health check ─────────────────────────────────────────────────────────────
 app.get('/api/health', (_, res) =>
   res.json({
     success: true,
@@ -95,10 +100,11 @@ app.get('/api/health', (_, res) =>
 );
 
 // ── API Routes ────────────────────────────────────────────────────────────────
-app.use('/api/auth',     authLimiter,  authRoutes);
-app.use('/api/khata',    apiLimiter,   khataRoutes);
-app.use('/api/users',    apiLimiter,   userRoutes);
-app.use('/api/products', apiLimiter,   productRoutes);
+app.use('/api/auth',     authLimiter,   authRoutes);
+app.use('/api/khata',    apiLimiter,    khataRoutes);
+app.use('/api/users',    apiLimiter,    userRoutes);
+app.use('/api/products', apiLimiter,    productRoutes);
+app.use('/api/upload',   uploadLimiter, uploadRoutes);
 
 // ── 404 + Global error handler ────────────────────────────────────────────────
 app.use(notFound);

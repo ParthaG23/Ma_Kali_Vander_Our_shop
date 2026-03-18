@@ -35,12 +35,19 @@ const getProductById = asyncHandler(async (req, res) => {
  * @access Admin
  */
 const createProduct = asyncHandler(async (req, res) => {
-  const { name, category, price, stock, unit } = req.body;
+  const { name, category, price, stock, unit, image } = req.body; // ← added image
 
   const exists = await Product.findOne({ name: { $regex: `^${name.trim()}$`, $options: 'i' }, isActive: true });
   if (exists) { res.status(409); throw new Error(`Product "${name}" already exists`); }
 
-  const product = await Product.create({ name: name.trim(), category, price, stock, unit });
+  const product = await Product.create({
+    name: name.trim(),
+    category,
+    price,
+    stock,
+    unit,
+    image: image || { url: '', publicId: '' }, // ← added image
+  });
   res.status(201).json({ success: true, data: product });
 });
 
@@ -53,7 +60,7 @@ const updateProduct = asyncHandler(async (req, res) => {
   const product = await Product.findOne({ _id: req.params.id, isActive: true });
   if (!product) { res.status(404); throw new Error('Product not found'); }
 
-  const allowed = ['name', 'category', 'price', 'stock', 'unit'];
+  const allowed = ['name', 'category', 'price', 'stock', 'unit', 'image']; // ← added image
   allowed.forEach((field) => {
     if (req.body[field] !== undefined) product[field] = req.body[field];
   });
