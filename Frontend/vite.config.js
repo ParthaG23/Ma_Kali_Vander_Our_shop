@@ -18,11 +18,13 @@ export default defineConfig({
     sourcemap: false,
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor:   ['react', 'react-dom', 'react-router-dom'],
-          motion:   ['framer-motion'],
-          icons:    ['react-icons'],
-          firebase: ['firebase'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react')) return 'vendor';
+            if (id.includes('framer-motion')) return 'motion';
+            if (id.includes('react-icons')) return 'icons';
+            if (id.includes('firebase')) return 'firebase';
+          }
         },
       },
     },
